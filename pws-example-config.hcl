@@ -1,0 +1,5 @@
+api   = "https://api.weather.com/v2/pws/observations/current"
+sid   = "KCORAMAH7"
+units = "e"
+key   = "abcdef1234567890abcdef123456789"
+tz    = "America/Denver"
