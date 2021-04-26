@@ -82,17 +82,13 @@ func main() {
 	}
 	var responseObject weatherCurrent
 	json.Unmarshal(bodyBytes, &responseObject)
-	// fmt.Printf("API Response as struct %+v\n", responseObject)
-	timeLayout := "15:04:05"
-	loc, err := time.LoadLocation(viper.GetString("tz"))
-	localTime := responseObject.Observations[0].ObsTimeUtc.In(loc)
 	compassDirs := []string{"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"}
 	fmt.Printf("Current Conditions for %s%s%s at %s%s%s are:\n",
 		yellow,
 		responseObject.Observations[0].StationID,
 		reset,
 		yellow,
-		localTime.Format(timeLayout),
+		responseObject.Observations[0].ObsTimeLocal,
 		reset,
 	)
 	fmt.Printf("%sCurrent:%s    %s%d\u00B0F (%d\u00B0C)%s\n",
