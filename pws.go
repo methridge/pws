@@ -7,18 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/fatih/color"
 )
-
-const reset = "\033[0m"
-const red = "\033[0;31m"
-const green = "\033[0;32m"
-const yellow = "\033[0;33m"
-const blue = "\033[0;34m"
-const purple = "\033[0;35m"
-const cyan = "\033[0;36m"
-const gray = "\033[0;37m"
-const white = "\033[97m"
 
 type weatherCurrent struct {
 	Observations []struct {
@@ -52,16 +42,15 @@ type weatherCurrent struct {
 	} `json:"observations"`
 }
 
+var (
+	api   string
+	sid   string
+	units string
+	key   string
+)
+
 func main() {
-	viper.SetConfigName("pws")
-	viper.SetConfigType("hcl")
-	viper.AddConfigPath("$HOME/.config")
-	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(fmt.Errorf("fatal error config file: %s", err))
-	}
-	url := viper.GetString("api") + "?stationId=" + viper.GetString("sid") + "&format=json&units=" + viper.GetString("units") + "&apiKey=" + viper.GetString("key")
+	url := api + "?stationId=" + sid + "&format=json&units=" + units + "&apiKey=" + key
 	// fmt.Println("URL: ", url)
 	// fmt.Println("Calling API...")
 	client := &http.Client{}
@@ -83,65 +72,65 @@ func main() {
 	var responseObject weatherCurrent
 	json.Unmarshal(bodyBytes, &responseObject)
 	compassDirs := []string{"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"}
-	fmt.Printf("Current Conditions for %s%s%s at %s%s%s are:\n",
-		yellow,
-		responseObject.Observations[0].StationID,
-		reset,
-		yellow,
-		responseObject.Observations[0].ObsTimeLocal,
-		reset,
-	)
-	fmt.Printf("%sCurrent:%s    %s%d\u00B0F (%d\u00B0C)%s\n",
-		cyan,
-		reset,
-		green,
+	c := color.New(color.FgCyan)
+	g := color.New(color.FgGreen)
+	y := color.New(color.FgYellow)
+
+	// Header
+	c.Printf("Current Conditions for ")
+	y.Printf("%s", responseObject.Observations[0].StationID)
+	c.Printf(" at ")
+	y.Printf("%s", responseObject.Observations[0].ObsTimeLocal)
+	c.Printf(" are:\n")
+
+	// Current
+	c.Printf("Current:    ")
+	if responseObject.Observations[0].Imperial.Temp > 80 {
+		color.Set(color.FgRed)
+	} else if 60 < responseObject.Observations[0].Imperial.Temp && responseObject.Observations[0].Imperial.Temp < 80 {
+		color.Set(color.FgGreen)
+	} else {
+		color.Set(color.FgHiBlue)
+	}
+	fmt.Printf("%d\u00B0F (%d\u00B0C)\n",
 		responseObject.Observations[0].Imperial.Temp,
 		(((responseObject.Observations[0].Imperial.Temp - 32) * 5) / 9),
-		reset,
 	)
-	if responseObject.Observations[0].Imperial.Temp > 70 {
-		fmt.Printf("%sFeels Like:%s %s%d\u00B0F (%d\u00B0C)%s\n",
-			cyan,
-			reset,
-			green,
-			responseObject.Observations[0].Imperial.HeatIndex,
-			(((responseObject.Observations[0].Imperial.HeatIndex - 32) * 5) / 9),
-			reset,
-		)
+
+	// Feels Like
+	c.Printf("Feels Like: ")
+	if responseObject.Observations[0].Imperial.Temp > 80 {
+		color.Set(color.FgRed)
+	} else if 60 < responseObject.Observations[0].Imperial.Temp && responseObject.Observations[0].Imperial.Temp < 80 {
+		color.Set(color.FgGreen)
 	} else {
-		fmt.Printf("%sFeels Like:%s %s%d\u00B0F (%d\u00B0C)%s\n",
-			cyan,
-			reset,
-			green,
-			responseObject.Observations[0].Imperial.WindChill,
-			(((responseObject.Observations[0].Imperial.WindChill - 32) * 5) / 9),
-			reset,
-		)
+		color.Set(color.FgHiBlue)
 	}
-	fmt.Printf("%sDew Point:%s  %s%d\u00B0F (%d\u00B0C)%s\n",
-		cyan,
-		reset,
-		green,
+	fmt.Printf("%d\u00B0F (%d\u00B0C)\n",
+		responseObject.Observations[0].Imperial.WindChill,
+		(((responseObject.Observations[0].Imperial.WindChill - 32) * 5) / 9),
+	)
+
+	// Dew Point
+	c.Printf("Dew Point:  ")
+	g.Printf("%d\u00B0F (%d\u00B0C)\n",
 		responseObject.Observations[0].Imperial.Dewpt,
 		(((responseObject.Observations[0].Imperial.Dewpt - 32) * 5) / 9),
-		reset,
 	)
-	fmt.Printf("%sHumidity:%s   %s%d%%%s\n",
-		cyan,
-		reset,
-		green,
+
+	// Humidity
+	c.Printf("Humidity:   ")
+	g.Printf("%d%%\n",
 		responseObject.Observations[0].Humidity,
-		reset,
 	)
+
+	// Wind Direction
 	compassIndex := responseObject.Observations[0].Winddir / 22
-	fmt.Printf("%sWind:%s       %s%s(%d\u00B0) @ %d-%d mph%s\n",
-		cyan,
-		reset,
-		green,
+	c.Printf("Wind:       ")
+	g.Printf("%s(%d\u00B0) @ %d-%d mph\n",
 		compassDirs[compassIndex],
 		responseObject.Observations[0].Winddir,
 		responseObject.Observations[0].Imperial.WindSpeed,
 		responseObject.Observations[0].Imperial.WindGust,
-		reset,
 	)
 }

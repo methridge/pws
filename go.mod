@@ -2,4 +2,4 @@ module github.com/methridge/pws
 
 go 1.16
 
-require github.com/spf13/viper v1.7.1
+require github.com/fatih/color v1.12.0
