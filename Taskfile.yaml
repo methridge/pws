@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  BINARY_NAME: pws
+  LDFLAGS:
+    -X main.api=${WU_API_URL} -X main.key=${WU_API_KEY} -X main.sid=${WU_SID} -X
+    main.units=${WU_UNITS}
+
+includes:
+  git:
+    taskfile: ~/.config/taskfile/git.yaml
+    flatten: true
+  go:
+    taskfile: ~/.config/taskfile/go.yaml
+    flatten: true
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list-all
+
+  help:
+    desc: Show this help message
+    cmds:
+      - task --list-all
