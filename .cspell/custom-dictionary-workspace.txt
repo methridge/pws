@@ -1,0 +1,7 @@
+# Custom Dictionary Words
+dewpt
+fatih
+KCORAMAH
+precip
+winddir
+Wunderground
